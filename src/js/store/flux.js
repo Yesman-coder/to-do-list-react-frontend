@@ -1,42 +1,43 @@
 const getState = ({ getStore, getActions, setStore }) => {
+	const baseUrl = "https://3000-d02ef992-c5e2-4db4-9dab-d237d03740bb.ws-us02.gitpod.io/";
 	return {
 		store: {
-			demo: [
-				{
-					title: "FIRST",
-					background: "white",
-					initial: "white"
-				},
-				{
-					title: "SECOND",
-					background: "white",
-					initial: "white"
-				}
-			]
+			tasks: []
 		},
 		actions: {
-			// Use getActions to call a function within a fuction
-			exampleFunction: () => {
-				getActions().changeColor(0, "green");
-			},
-			loadSomeData: () => {
-				/**
-					fetch().then().then(data => setStore({ "foo": data.bar }))
-				*/
-			},
-			changeColor: (index, color) => {
-				//get the store
-				const store = getStore();
+			// MISSING CHANGE DONE TO TRUE
 
-				//we have to loop the entire demo array to look for the respective index
-				//and change its color
-				const demo = store.demo.map((elm, i) => {
-					if (i === index) elm.background = color;
-					return elm;
+			getList: async () => {
+				const result = await fetch(`${baseUrl}/todos`, {
+					method: "GET"
 				});
+				const taskList = await result.json();
+				setStore({ tasks: taskList });
+			},
 
-				//reset the global store
-				setStore({ demo: demo });
+			deleteTask: async position => {
+				let actions = getActions();
+				const response = await fetch(`${baseUrl}/todos/${position}`, {
+					method: "DELETE",
+					headers: {
+						"Content-Type": "application/json"
+					}
+				});
+				await actions.getList();
+			},
+
+			addTask: async task => {
+				let actions = getActions();
+				if (task != "") {
+					const response = await fetch(`${baseUrl}/todos`, {
+						method: "POST",
+						body: JSON.stringify({ label: `${task}`, done: false }),
+						headers: {
+							"Content-Type": "application/json"
+						}
+					});
+					await actions.getList();
+				} else alert("Please type a new task");
 			}
 		}
 	};
